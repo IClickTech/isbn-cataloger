@@ -1,0 +1,4 @@
+requests>=2.31
+pymarc>=5.0  # optional, only needed for binary .mrc export
+Flask>=3.0
+gunicorn>=21.2  # production WSGI server for deployment

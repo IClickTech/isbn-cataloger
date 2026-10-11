@@ -1,0 +1,1 @@
+run = "pip install -r requirements.txt -q && gunicorn --bind 0.0.0.0:8080 'isbn_cataloger.webapp:create_app()'"

@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بيانات فهرسة الكتب من رقم ISBN</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23b5651d'/%3E%3Cpath d='M6 5h7a2 2 0 0 1 2 2v12H8a2 2 0 0 1-2-2V5z' fill='%23fff' opacity='0.92'/%3E%3Cpath d='M6 5h1.6v14H8a2 2 0 0 1-2-2V5z' fill='%23fff' opacity='0.55'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card-bg: #ffffff;
+    --text: #1f1f1f;
+    --muted: #6b6b6b;
+    --border: #e2e0db;
+    --accent: #b5651d;
+    --accent-dark: #8a4a14;
+    --ok: #2f7a3d;
+    --warn: #a35b00;
+    --mono-bg: #f1efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1a18;
+      --card-bg: #242320;
+      --text: #ececec;
+      --muted: #a3a09a;
+      --border: #3a3834;
+      --accent: #d98b4a;
+      --accent-dark: #e8a569;
+      --ok: #5fbf72;
+      --warn: #e0a84a;
+      --mono-bg: #2c2a26;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1a18; --card-bg: #242320; --text: #ececec; --muted: #a3a09a;
+    --border: #3a3834; --accent: #d98b4a; --accent-dark: #e8a569; --ok: #5fbf72;
+    --warn: #e0a84a; --mono-bg: #2c2a26;
+  }
+  :root[data-theme="light"] {
+    --bg: #f7f7f5; --card-bg: #ffffff; --text: #1f1f1f; --muted: #6b6b6b;
+    --border: #e2e0db; --accent: #b5651d; --accent-dark: #8a4a14; --ok: #2f7a3d;
+    --warn: #a35b00; --mono-bg: #f1efe9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  h1 { font-size: 1.45rem; margin-bottom: 0.3rem; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin-bottom: 1.6rem; font-size: 0.92rem; line-height: 1.6; }
+  .theme-toggle {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    width: 2.3rem; height: 2.3rem; padding: 0; border-radius: 50%; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 0.3rem;
+  }
+  .theme-toggle:hover { background: var(--mono-bg); color: var(--text); }
+  .theme-toggle svg { width: 1.15rem; height: 1.15rem; }
+  .search-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem 1.4rem;
+    margin-bottom: 1.3rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.03);
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-bottom: 1.1rem;
+  }
+  .search-actions { display: flex; gap: 0.6rem; }
+  .search-actions button { flex: 1; }
+  input[type="text"] {
+    width: 100%;
+    padding: 0.7rem 0.95rem;
+    font-size: 1.05rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--text);
+    direction: ltr;
+    text-align: right;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  button {
+    padding: 0.65rem 1.4rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 9px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s, opacity 0.15s;
+  }
+  button:hover { background: var(--accent-dark); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  #saveBtn { background: var(--ok); }
+  #saveBtn:hover:not(:disabled) { background: var(--ok); filter: brightness(0.9); }
+  .search-row { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+  .search-row input { flex: 1; }
+  .catalog-toolbar-row { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .catalog-search-input { flex: 1 1 240px; }
+  .sources-checklist-label {
+    display: block; font-size: 0.78rem; color: var(--muted);
+    margin-bottom: 0.55rem; font-weight: 600; letter-spacing: 0.01em;
+  }
+  .sources-checklist { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .sources-checklist label {
+    display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
+    background: var(--mono-bg); border: 1px solid var(--border); border-radius: 999px;
+    padding: 0.35rem 0.8rem 0.35rem 0.65rem; font-size: 0.84rem;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .sources-checklist label.checked { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--mono-bg)); }
+  .sources-checklist label.disabled { color: var(--muted); cursor: not-allowed; opacity: 0.6; }
+  .sources-checklist input[type="checkbox"] { width: auto; accent-color: var(--accent); margin: 0; }
+  .error {
+    background: color-mix(in srgb, #c74b4b 10%, var(--card-bg));
+    border: 1px solid #c74b4b;
+    border-inline-start: 4px solid #c74b4b;
+    color: #c74b4b;
+    padding: 0.75rem 1.1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: none;
+    animation: fadeIn 0.18s ease;
+  }
+  .tabs { display: flex; gap: 0.4rem; margin-bottom: 0.8rem; display: none; }
+  .tabs button {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
+  .tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    display: none;
+  }
+  .panel.show { display: block; animation: fadeIn 0.18s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  dl.card div { transition: background 0.1s; }
+  dl.card div:hover { background: var(--mono-bg); }
+  dl.card { margin: 0; }
+  dl.card div { display: flex; padding: 0.35rem 0; border-bottom: 1px solid var(--border); gap: 0.5rem; }
+  dl.card div:last-child { border-bottom: none; }
+  dl.card dt { flex: 0 0 160px; color: var(--muted); font-size: 0.92rem; }
+  dl.card dd { margin: 0; flex: 1; }
+  .na { color: var(--muted); font-style: italic; }
+  pre {
+    background: var(--mono-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .sources {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.85rem;
+  }
+  .sources div { padding: 0.15rem 0; }
+  .sources .empty { margin-bottom: 0.5rem; }
+  .ok { color: var(--ok); }
+  .warn { color: var(--warn); }
+  .sources-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .source-tag {
+    display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem;
+    padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid;
+    cursor: default;
+  }
+  .source-tag.ok { color: var(--ok); border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .source-tag.warn { color: var(--warn); border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+  .loading {
+    color: var(--muted); display: none; align-items: center; gap: 0.55rem;
+    margin-bottom: 1rem; font-size: 0.92rem;
+  }
+  .spinner {
+    width: 1.1em; height: 1.1em; flex: 0 0 auto;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .saved-badge {
+    margin-bottom: 1rem; padding: 0.75rem 1.1rem; border-radius: 10px; font-size: 0.9rem;
+    line-height: 1.6; display: none; animation: fadeIn 0.18s ease;
+  }
+  .saved-badge.ok {
+    background: color-mix(in srgb, var(--ok) 10%, var(--card-bg));
+    border: 1px solid var(--ok); border-inline-start: 4px solid var(--ok); color: var(--ok);
+  }
+  .saved-badge.warn {
+    background: color-mix(in srgb, var(--warn) 10%, var(--card-bg));
+    border: 1px solid var(--warn); border-inline-start: 4px solid var(--warn); color: var(--warn);
+  }
+  .catalog-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+    padding: 0.4rem 1.3rem 1.2rem; overflow-x: auto;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.03);
+  }
+  .catalog-meta { color: var(--muted); font-size: 0.82rem; padding: 0.9rem 0 0.4rem; }
+  .na-inline { font-style: italic; color: var(--muted); }
+  .catalog-grid {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(160px, 2.2fr) minmax(100px, 1fr) minmax(100px, 1fr) 7.2rem 6.2rem auto;
+    column-gap: 0.7rem; align-items: center; min-width: 700px; font-size: 0.88rem;
+  }
+  .gcell { padding: 0.65rem 0.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-bottom: 1px solid var(--border); }
+  .ghead { font-size: 0.76rem; color: var(--muted); font-weight: 700; letter-spacing: 0.01em; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+  .grow { display: contents; }
+  .grow > .gcell { transition: background 0.1s; }
+  .grow:hover > .gcell { background: var(--mono-bg); }
+  .grow:last-of-type > .gcell { border-bottom: none; }
+  .gtitle { font-weight: 600; color: var(--text); }
+  .gnum { color: var(--muted); font-size: 0.82rem; }
+  .gcell.isbn { font-family: "Consolas", "SFMono-Regular", Menlo, monospace; direction: ltr; text-align: right; }
+  button.sort-btn {
+    background: transparent; border: none; color: var(--muted); font-weight: 700;
+    font-size: 0.76rem; letter-spacing: 0.01em; padding: 0 0.1rem 0.6rem; text-align: right;
+    display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; border-radius: 0;
+  }
+  button.sort-btn:hover { background: transparent; color: var(--text); }
+  button.sort-btn.active { color: var(--accent); }
+  .catalog-pagination {
+    display: flex; align-items: center; justify-content: center; gap: 1rem;
+    padding: 1rem 0 0.3rem; font-size: 0.84rem; color: var(--muted);
+  }
+  .catalog-pagination button { padding: 0.4rem 1.1rem; font-size: 0.84rem; }
+  .row-open-link {
+    display: inline-block; white-space: nowrap; color: var(--accent); text-decoration: none; flex: 0 0 auto;
+    font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); border-radius: 999px;
+    padding: 0.3rem 0.75rem; transition: border-color 0.15s, background 0.15s;
+  }
+  .row-open-link:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .row-actions { display: flex; align-items: center; gap: 0.35rem; flex: 0 0 auto; }
+  .row-icon-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    width: 2.1rem; height: 2.1rem; padding: 0; border-radius: 50%; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .row-icon-btn svg { width: 1rem; height: 1rem; }
+  .row-edit-btn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: var(--accent); color: var(--accent); }
+  .row-delete-btn:hover { background: color-mix(in srgb, #c74b4b 12%, transparent); border-color: #c74b4b; color: #c74b4b; }
+  .empty { color: var(--muted); font-style: italic; }
+  #mainTabs {
+    display: flex; gap: 1.6rem; margin-bottom: 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  #mainTabs button {
+    flex: 1 1 0; background: transparent; color: var(--muted); border: none; border-radius: 0;
+    padding: 0.55rem 0.1rem 0.7rem; font-size: 0.98rem; font-weight: 600; text-align: center;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  #mainTabs button:hover { background: transparent; color: var(--text); }
+  #mainTabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .view-hidden { display: none; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 4vh 1rem; z-index: 1000; overflow-y: auto;
+  }
+  .modal-overlay.view-hidden { display: none; }
+  .modal-box {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    max-width: 700px; width: 100%; padding: 1.2rem 1.4rem;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 0.9rem; }
+  .modal-header h2 { font-size: 1.05rem; margin: 0; }
+  .modal-close {
+    background: transparent; color: var(--muted); border: none; font-size: 1.5rem;
+    line-height: 1; padding: 0 0.4rem; cursor: pointer;
+  }
+  .modal-close:hover { background: transparent; color: var(--text); }
+  .modal-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; }
+  .modal-tabs button {
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    padding: 0.4rem 1rem; font-size: 0.9rem;
+  }
+  .modal-tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .manual-card {
+    background: var(--card-bg); border: 1px solid var(--warn); border-radius: 14px;
+    padding: 1.2rem 1.4rem; margin-bottom: 1.2rem;
+  }
+  .manual-hint { color: var(--warn); font-size: 0.88rem; margin: 0 0 1rem; }
+  .manual-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem 1rem; margin-bottom: 0.8rem; }
+  .manual-grid label, .manual-note-label {
+    display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; color: var(--muted);
+  }
+  .manual-grid input, .manual-note-label textarea {
+    padding: 0.5rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); font-size: 0.95rem; font-family: inherit;
+  }
+  .manual-note-label { margin-bottom: 1rem; }
+  .manual-note-label textarea { resize: vertical; }
+  @media (max-width: 520px) { .manual-grid { grid-template-columns: 1fr; } }
+
+  .field-source {
+    display: inline-block; font-size: 0.66rem; color: var(--muted); margin-inline-start: 0.5rem;
+    padding: 0.05rem 0.5rem; border: 1px solid var(--border); border-radius: 999px; vertical-align: middle;
+  }
+  .empty-state { text-align: center; padding: 2.6rem 1rem; color: var(--muted); }
+  .empty-state .title { font-size: 0.98rem; color: var(--text); margin-bottom: 0.3rem; }
+  .empty-state .hint { font-size: 0.85rem; }
+  .toast-container {
+    position: fixed; top: 1.2rem; inset-inline-end: 1.2rem; z-index: 2000;
+    display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none;
+  }
+  .toast {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px;
+    padding: 0.65rem 1.1rem; font-size: 0.88rem; max-width: 320px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+    opacity: 0; transform: translateY(-6px); transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast-ok { border-color: var(--ok); color: var(--ok); }
+  .toast-warn { border-color: var(--warn); color: var(--warn); }
+  .toast-err { border-color: #c74b4b; color: #c74b4b; }
+  .modal-footer {
+    display: flex; gap: 0.6rem; margin-top: 1rem; padding-top: 0.9rem;
+    border-top: 1px solid var(--border); justify-content: flex-end;
+  }
+  #confirmOverlay { z-index: 1100; }
+  .confirm-box { max-width: 380px; }
+  .confirm-box p { margin: 0; font-size: 0.95rem; line-height: 1.65; }
+  .confirm-box .modal-footer { margin-top: 1.2rem; }
+  #editOverlay { z-index: 1100; }
+  .edit-box { max-width: 640px; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--mono-bg); }
+  .btn-danger { background: #c74b4b; }
+  .btn-danger:hover { background: #a93a3a; }
+  .catalog-toolbar { display: flex; justify-content: flex-end; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .btn-outline-link {
+    display: inline-block; font-size: 0.82rem; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 0.35rem 0.9rem;
+    text-decoration: none; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-outline-link:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header-row">
+    <h1>بيانات فهرسة الكتب من رقم ISBN</h1>
+    <button type="button" id="themeToggle" class="theme-toggle" aria-label="تبديل المظهر الداكن/الفاتح"></button>
+  </div>
+  <p class="sub">أدخل رقم ISBN (10 أو 13 خانة) واختر المصادر أدناه لإجراء استرجاع كامل للبيانات. الاسترجاع وحده لا يحفظ شيئًا — راجع النتيجة ثم اضغط "حفظ في الفهرس" لتسجيل كل التفاصيل في قاعدة البيانات.</p>
+
+  <div class="tabs" id="mainTabs">
+    <button type="button" data-maintab="lookupView" class="active">بحث جديد</button>
+    <button type="button" data-maintab="catalogView">الفهرس المحفوظ</button>
+  </div>
+
+  <div id="lookupView">
+    <div class="search-card">
+      <form id="searchForm">
+        <input type="text" id="isbnInput" placeholder="مثال: 9780307474278" autofocus>
+        <div class="search-actions">
+          <button type="submit" id="searchBtn">بحث (استرجاع فقط)</button>
+          <button type="button" id="saveBtn" disabled>حفظ في الفهرس</button>
+        </div>
+      </form>
+
+      <span class="sources-checklist-label">المصادر</span>
+      <div class="sources-checklist" id="sourcesChecklist"><p class="empty">جارٍ تحميل قائمة المصادر...</p></div>
+    </div>
+
+    <p class="loading" id="loading"><span class="spinner"></span><span>جارٍ البحث...</span></p>
+    <div class="error" id="errorBox"></div>
+    <div class="saved-badge" id="savedBadge"></div>
+
+    <div class="manual-card view-hidden" id="manualEntryCard">
+      <p class="manual-hint">لم يُعثر على بيانات لهذا الرقم تلقائيًا من أي مصدر — أدخل البيانات يدويًا لتسجيلها في الفهرس.</p>
+      <form id="manualForm">
+        <div class="manual-grid">
+          <label>العنوان *<input type="text" id="manualTitle" required></label>
+          <label>العنوان الفرعي<input type="text" id="manualSubtitle"></label>
+          <label>المؤلف/المؤلفون (افصل بفاصلة)<input type="text" id="manualAuthors"></label>
+          <label>الناشر<input type="text" id="manualPublisher"></label>
+          <label>مكان النشر<input type="text" id="manualPublishPlace"></label>
+          <label>تاريخ النشر<input type="text" id="manualPublishDate"></label>
+          <label>الطبعة<input type="text" id="manualEdition"></label>
+          <label>عدد الصفحات<input type="text" id="manualPages"></label>
+          <label>اللغة<input type="text" id="manualLanguage"></label>
+          <label>تصنيف ديوي<input type="text" id="manualDewey"></label>
+          <label>تصنيف مكتبة الكونغرس<input type="text" id="manualLcc"></label>
+          <label>رؤوس الموضوعات (افصل بفاصلة)<input type="text" id="manualSubjects"></label>
+        </div>
+        <label class="manual-note-label">ملاحظات<textarea id="manualNote" rows="2"></textarea></label>
+        <button type="submit" id="manualSaveBtn">حفظ البيانات اليدوية في الفهرس</button>
+      </form>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button type="button" data-panel="cardPanel" class="active">بطاقة الفهرسة</button>
+      <button type="button" data-panel="marcPanel">MARC 21</button>
+      <button type="button" data-panel="jsonPanel">JSON</button>
+    </div>
+
+    <div class="panel show" id="cardPanel">
+      <dl class="card" id="cardBody"></dl>
+      <div class="sources" id="sourcesBody"></div>
+    </div>
+    <div class="panel" id="marcPanel"><pre id="marcBody"></pre></div>
+    <div class="panel" id="jsonPanel"><pre id="jsonBody"></pre></div>
+  </div>
+
+  <div id="catalogView" class="view-hidden">
+    <div class="catalog-toolbar-row">
+      <input type="text" id="catalogSearch" class="catalog-search-input" placeholder="ابحث في الفهرس المحفوظ (عنوان، مؤلف، ناشر، ISBN...)">
+      <div class="catalog-toolbar">
+        <a href="/api/export?format=csv" id="exportCsvLink" class="btn-outline-link">تصدير CSV</a>
+        <a href="/api/export?format=json" id="exportJsonLink" class="btn-outline-link">تصدير JSON</a>
+      </div>
+    </div>
+    <div class="catalog-card">
+      <div id="catalogBody"><p class="empty">جارٍ التحميل...</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay view-hidden" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+      <button type="button" class="modal-close" id="modalClose" aria-label="إغلاق">×</button>
+    </div>
+    <div class="modal-tabs" id="modalTabs">
+      <button type="button" data-view="card">تفاصيل</button>
+      <button type="button" data-view="marc">MARC 21</button>
+      <button type="button" data-view="json">JSON</button>
+    </div>
+    <div id="modalContent"></div>
+    <div class="modal-footer">
+      <button type="button" class="btn-outline" id="modalEditBtn">تعديل يدويًا</button>
+      <button type="button" class="btn-danger" id="modalDeleteBtn">حذف من الفهرس</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay view-hidden" id="confirmOverlay">
+  <div class="modal-box confirm-box">
+    <p id="confirmMessage"></p>
+    <div class="modal-footer">
+      <button type="button" class="btn-outline" id="confirmCancelBtn">إلغاء</button>
+      <button type="button" class="btn-danger" id="confirmOkBtn">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay view-hidden" id="editOverlay">
+  <div class="modal-box edit-box">
+    <div class="modal-header">
+      <h2 id="editModalTitle">تعديل بيانات الكتاب</h2>
+      <button type="button" class="modal-close" id="editModalClose" aria-label="إغلاق">×</button>
+    </div>
+    <form id="editForm">
+      <input type="hidden" id="editIsbn">
+      <div class="manual-grid">
+        <label>العنوان *<input type="text" id="editTitle" required></label>
+        <label>العنوان الفرعي<input type="text" id="editSubtitle"></label>
+        <label>المؤلف/المؤلفون (افصل بفاصلة)<input type="text" id="editAuthors"></label>
+        <label>الناشر<input type="text" id="editPublisher"></label>
+        <label>مكان النشر<input type="text" id="editPublishPlace"></label>
+        <label>تاريخ النشر<input type="text" id="editPublishDate"></label>
+        <label>الطبعة<input type="text" id="editEdition"></label>
+        <label>عدد الصفحات<input type="text" id="editPages"></label>
+        <label>اللغة<input type="text" id="editLanguage"></label>
+        <label>تصنيف ديوي<input type="text" id="editDewey"></label>
+        <label>تصنيف مكتبة الكونغرس<input type="text" id="editLcc"></label>
+        <label>رؤوس الموضوعات (افصل بفاصلة)<input type="text" id="editSubjects"></label>
+      </div>
+      <label class="manual-note-label">ملاحظات<textarea id="editNote" rows="2"></textarea></label>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" id="editCancelBtn">إلغاء</button>
+        <button type="submit" id="editSaveBtn">حفظ التعديلات</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const NA = '<span class="na">غير متوفر</span>';
+
+// ---------- Rendering ----------
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+// For each scalar field, find which source's record actually supplied the value
+// that won the merge (first non-empty record wins, same priority order the
+// backend's aggregator._merge uses) — shown as a small badge next to the value.
+function buildFieldSources(records) {
+  const fields = ['title', 'subtitle', 'publisher', 'publish_place', 'publish_date',
+                   'edition', 'pages', 'language', 'dewey', 'lcc'];
+  const map = {};
+  for (const f of fields) {
+    for (const rec of records || []) {
+      if (rec && rec[f]) { map[f] = rec.source; break; }
+    }
+  }
+  return map;
+}
+
+function cardRowsHtml(r, records) {
+  const fieldSources = records ? buildFieldSources(records) : {};
+  const rows = [
+    ['title', 'العنوان', r.title],
+    ['subtitle', 'العنوان الفرعي', r.subtitle],
+    [null, 'المؤلف/المؤلفون', (r.authors || []).length ? r.authors.join('، ') : null],
+    ['publisher', 'الناشر', r.publisher],
+    ['publish_place', 'مكان النشر', r.publish_place],
+    ['publish_date', 'تاريخ النشر', r.publish_date],
+    ['edition', 'الطبعة', r.edition],
+    ['pages', 'عدد الصفحات', r.pages],
+    ['language', 'اللغة', r.language],
+    [null, 'الردمك (ISBN-13)', r.isbn13],
+    [null, 'الردمك (ISBN-10)', r.isbn10],
+    ['dewey', 'تصنيف ديوي', r.dewey],
+    ['lcc', 'تصنيف مكتبة الكونغرس', r.lcc],
+    [null, 'رؤوس الموضوعات', (r.subjects || []).length ? r.subjects.join('، ') : null],
+    ['note', 'ملاحظات', r.note],
+  ];
+  return rows.map(([key, label, val]) => {
+    const src = key && val ? fieldSources[key] : null;
+    const badge = src ? `<span class="field-source" title="المصدر: ${escapeHtml(src)}">${escapeHtml(src)}</span>` : '';
+    return `<div><dt>${escapeHtml(label)}</dt><dd>${val ? escapeHtml(val) : NA}${badge}</dd></div>`;
+  }).join('');
+}
+
+// sources_used comes either as a list of source-record objects (live lookup)
+// or a list of plain source-name strings (already-saved catalog rows).
+function sourceNames(sourcesUsed) {
+  return (sourcesUsed || []).map((s) => (typeof s === 'string' ? s : s.source));
+}
+
+// sources_skipped comes either as [{source, reason}, ...] (live lookup) or
+// [[source, reason], ...] (as stored in the DB) — normalize both to objects.
+function normalizeSkipped(skipped) {
+  return (skipped || []).map((item) => (Array.isArray(item) ? { source: item[0], reason: item[1] } : item));
+}
+
+function sourcesHtml(usedSourceNames, skipped) {
+  let html = usedSourceNames.length ? '' : '<p class="empty">لم يساهم أي مصدر ببيانات</p>';
+  html += '<div class="sources-tags">';
+  for (const name of usedSourceNames) {
+    html += `<span class="source-tag ok">✓ ${escapeHtml(name)}</span>`;
+  }
+  for (const { source, reason } of normalizeSkipped(skipped)) {
+    html += `<span class="source-tag warn" title="${escapeHtml(reason)}">${escapeHtml(source)}</span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderCard(merged, usedSources, skipped, records) {
+  document.getElementById('cardBody').innerHTML = cardRowsHtml(merged, records);
+  document.getElementById('sourcesBody').innerHTML = sourcesHtml(sourceNames(usedSources), skipped);
+}
+
+function formatBookDetail(book) {
+  let html = `<dl class="card">${cardRowsHtml(book, book.raw_records)}</dl>`;
+  html += `<div class="sources">${sourcesHtml(sourceNames(book.sources_used), book.sources_skipped)}`;
+  html += `<div>أُضيف: ${escapeHtml(book.created_at || '—')} · آخر تحديث: ${escapeHtml(book.updated_at || '—')}</div>`;
+  html += '</div>';
+  return html;
+}
+
+// Per-book cache so switching between تفاصيل/MARC/JSON for the same row,
+// or reopening it later, doesn't refetch what was already loaded.
+const rowDataCache = new Map(); // isbn13 -> { book: object|null, marcText: string|null }
+
+async function getCachedBook(isbn) {
+  let entry = rowDataCache.get(isbn);
+  if (!entry) { entry = { book: null, marcText: null }; rowDataCache.set(isbn, entry); }
+  if (!entry.book) {
+    const resp = await fetch(`/api/books/${encodeURIComponent(isbn)}`);
+    const book = await resp.json();
+    if (!resp.ok) throw new Error(book.error || `HTTP ${resp.status}`);
+    entry.book = book;
+  }
+  return entry.book;
+}
+
+async function getCachedMarc(isbn) {
+  const entry = rowDataCache.get(isbn) || { book: null, marcText: null };
+  rowDataCache.set(isbn, entry);
+  if (entry.marcText === null) {
+    const resp = await fetch(`/api/books/${encodeURIComponent(isbn)}/marc`);
+    const text = await resp.text();
+    if (!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
+    entry.marcText = text;
+  }
+  return entry.marcText;
+}
+
+async function loadRowView(isbn, view, cell) {
+  cell.innerHTML = '<p class="empty">جارٍ التحميل...</p>';
+  try {
+    if (view === 'card') {
+      cell.innerHTML = formatBookDetail(await getCachedBook(isbn));
+    } else if (view === 'json') {
+      cell.innerHTML = `<pre>${escapeHtml(JSON.stringify(await getCachedBook(isbn), null, 2))}</pre>`;
+    } else if (view === 'marc') {
+      cell.innerHTML = `<pre>${escapeHtml(await getCachedMarc(isbn))}</pre>`;
+    }
+  } catch (err) {
+    cell.innerHTML = `<p class="empty">تعذّر التحميل: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+// ---------- Toasts ----------
+const toastContainer = document.createElement('div');
+toastContainer.className = 'toast-container';
+document.body.appendChild(toastContainer);
+
+function showToast(message, type) {
+  const el = document.createElement('div');
+  el.className = `toast toast-${type || 'ok'}`;
+  el.textContent = message;
+  toastContainer.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 250);
+  }, 3200);
+}
+
+// ---------- Modal (details / MARC / JSON popup) ----------
+const modalOverlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const modalContent = document.getElementById('modalContent');
+const modalTabs = document.getElementById('modalTabs');
+let modalIsbn = null;
+
+function setModalTab(view) {
+  modalTabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+  loadRowView(modalIsbn, view, modalContent);
+}
+
+function openModal(isbn, title, view) {
+  modalIsbn = isbn;
+  modalTitle.textContent = title || isbn;
+  modalOverlay.classList.remove('view-hidden');
+  setModalTab(view);
+}
+
+function closeModal() {
+  modalOverlay.classList.add('view-hidden');
+  modalIsbn = null;
+  const lookupActive = !document.getElementById('lookupView').classList.contains('view-hidden');
+  const target = document.getElementById(lookupActive ? 'isbnInput' : 'catalogSearch');
+  if (target) target.focus();
+}
+
+modalTabs.querySelectorAll('button').forEach((b) => {
+  b.addEventListener('click', () => setModalTab(b.dataset.view));
+});
+document.getElementById('modalClose').addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+// ---------- Confirm dialog (modern replacement for window.confirm) ----------
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmMessage = document.getElementById('confirmMessage');
+const confirmOkBtn = document.getElementById('confirmOkBtn');
+const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+let confirmResolve = null;
+
+function confirmDialog(message, confirmLabel) {
+  confirmMessage.textContent = message;
+  confirmOkBtn.textContent = confirmLabel || 'تأكيد';
+  confirmOverlay.classList.remove('view-hidden');
+  return new Promise((resolve) => { confirmResolve = resolve; });
+}
+function closeConfirmDialog(result) {
+  confirmOverlay.classList.add('view-hidden');
+  if (confirmResolve) { confirmResolve(result); confirmResolve = null; }
+}
+confirmOkBtn.addEventListener('click', () => closeConfirmDialog(true));
+confirmCancelBtn.addEventListener('click', () => closeConfirmDialog(false));
+confirmOverlay.addEventListener('click', (e) => { if (e.target === confirmOverlay) closeConfirmDialog(false); });
+
+// ---------- Edit modal ----------
+const editOverlay = document.getElementById('editOverlay');
+const editForm = document.getElementById('editForm');
+const editModalTitle = document.getElementById('editModalTitle');
+
+function fillEditForm(book) {
+  document.getElementById('editIsbn').value = book.isbn13;
+  document.getElementById('editTitle').value = book.title || '';
+  document.getElementById('editSubtitle').value = book.subtitle || '';
+  document.getElementById('editAuthors').value = (book.authors || []).join('، ');
+  document.getElementById('editPublisher').value = book.publisher || '';
+  document.getElementById('editPublishPlace').value = book.publish_place || '';
+  document.getElementById('editPublishDate').value = book.publish_date || '';
+  document.getElementById('editEdition').value = book.edition || '';
+  document.getElementById('editPages').value = book.pages || '';
+  document.getElementById('editLanguage').value = book.language || '';
+  document.getElementById('editSubjects').value = (book.subjects || []).join('، ');
+  document.getElementById('editDewey').value = book.dewey || '';
+  document.getElementById('editLcc').value = book.lcc || '';
+  document.getElementById('editNote').value = book.note || '';
+}
+
+function openEditModal(book) {
+  fillEditForm(book);
+  editModalTitle.textContent = `تعديل: ${book.title || book.isbn13}`;
+  editOverlay.classList.remove('view-hidden');
+  document.getElementById('editTitle').focus();
+}
+
+function closeEditModal() {
+  editOverlay.classList.add('view-hidden');
+}
+
+document.getElementById('editModalClose').addEventListener('click', closeEditModal);
+document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
+editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditModal(); });
+
+editForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const editSaveBtn = document.getElementById('editSaveBtn');
+  editSaveBtn.disabled = true;
+
+  const splitList = (value) => value.split('،').join(',').split(',').map((s) => s.trim()).filter(Boolean);
+  const payload = {
+    isbn: document.getElementById('editIsbn').value,
+    title: document.getElementById('editTitle').value.trim(),
+    subtitle: document.getElementById('editSubtitle').value.trim(),
+    authors: splitList(document.getElementById('editAuthors').value),
+    publisher: document.getElementById('editPublisher').value.trim(),
+    publish_place: document.getElementById('editPublishPlace').value.trim(),
+    publish_date: document.getElementById('editPublishDate').value.trim(),
+    edition: document.getElementById('editEdition').value.trim(),
+    pages: document.getElementById('editPages').value.trim(),
+    language: document.getElementById('editLanguage').value.trim(),
+    subjects: splitList(document.getElementById('editSubjects').value),
+    dewey: document.getElementById('editDewey').value.trim(),
+    lcc: document.getElementById('editLcc').value.trim(),
+    note: document.getElementById('editNote').value.trim(),
+  };
+
+  try {
+    const resp = await fetch('/api/books/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    rowDataCache.delete(payload.isbn);
+    closeEditModal();
+    showToast('تم تحديث بيانات الكتاب ✓', 'ok');
+    loadCatalog(document.getElementById('catalogSearch').value.trim());
+  } catch (err) {
+    showToast(`تعذّر حفظ التعديلات: ${err.message}`, 'err');
+  } finally {
+    editSaveBtn.disabled = false;
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!confirmOverlay.classList.contains('view-hidden')) { closeConfirmDialog(false); return; }
+  if (!editOverlay.classList.contains('view-hidden')) { closeEditModal(); return; }
+  if (!modalOverlay.classList.contains('view-hidden')) closeModal();
+});
+
+async function editBook(isbn) {
+  try {
+    const book = await getCachedBook(isbn);
+    closeModal();
+    openEditModal(book);
+  } catch (err) {
+    showToast(`تعذّر تحميل البيانات للتعديل: ${err.message}`, 'err');
+  }
+}
+
+document.getElementById('modalEditBtn').addEventListener('click', () => {
+  if (modalIsbn) editBook(modalIsbn);
+});
+
+const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16ZM10 11v6M14 11v6"/></svg>';
+const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+
+async function deleteBook(isbn, title) {
+  const ok = await confirmDialog(`هل تريد حذف "${title || isbn}" من الفهرس؟ لا يمكن التراجع عن هذا الإجراء.`, 'حذف');
+  if (!ok) return;
+  try {
+    const resp = await fetch(`/api/books/${encodeURIComponent(isbn)}`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+    rowDataCache.delete(isbn);
+    if (modalIsbn === isbn) closeModal();
+    showToast('تم حذف الكتاب من الفهرس ✓', 'ok');
+    loadCatalog(document.getElementById('catalogSearch').value.trim());
+  } catch (err) {
+    showToast(`تعذّر الحذف: ${err.message}`, 'err');
+  }
+}
+
+document.getElementById('modalDeleteBtn').addEventListener('click', () => {
+  if (!modalIsbn) return;
+  deleteBook(modalIsbn, modalTitle.textContent);
+});
+
+// ---------- Catalog table: sorting + pagination (client-side, over the current query's result set) ----------
+const CATALOG_PAGE_SIZE = 10;
+let catalogBooks = [];
+let catalogQuery = '';
+let catalogSort = { col: 'updated_at', dir: 'desc' };
+let catalogPage = 1;
+
+const SORT_COLUMNS = [
+  ['title', 'العنوان'],
+  ['authors', 'المؤلف'],
+  ['publisher', 'الناشر'],
+  ['updated_at', 'آخر تحديث'],
+];
+
+function sortValue(b, col) {
+  if (col === 'authors') return (b.authors || []).join('، ');
+  return (b[col] || '').toString();
+}
+
+function sortedCatalogBooks() {
+  const { col, dir } = catalogSort;
+  const mult = dir === 'asc' ? 1 : -1;
+  return [...catalogBooks].sort((a, b) => sortValue(a, col).localeCompare(sortValue(b, col)) * mult);
+}
+
+function catalogHeaderHtml() {
+  const sortButtons = SORT_COLUMNS.map(([col, label]) => {
+    const active = catalogSort.col === col;
+    const arrow = active ? (catalogSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+    return `<button type="button" class="gcell ghead sort-btn${active ? ' active' : ''}" data-col="${col}">${escapeHtml(label)}${arrow}</button>`;
+  });
+  return `
+    <div class="gcell ghead">#</div>
+    ${sortButtons[0]}
+    ${sortButtons[1]}
+    ${sortButtons[2]}
+    <div class="gcell ghead">ISBN-13</div>
+    ${sortButtons[3]}
+    <div class="gcell ghead"></div>`;
+}
+
+function bookRowHtml(b, num) {
+  const authors = (b.authors || []).length
+    ? escapeHtml(b.authors.join('، '))
+    : '<span class="na-inline">غير معروف</span>';
+  const publisher = b.publisher ? escapeHtml(b.publisher) : '<span class="na-inline">غير معروف</span>';
+  const updated = b.updated_at ? escapeHtml(b.updated_at.slice(0, 10)) : '—';
+  return `
+    <div class="grow">
+      <div class="gcell gnum">${num}</div>
+      <div class="gcell gtitle">${escapeHtml(b.title || 'بدون عنوان')}</div>
+      <div class="gcell">${authors}</div>
+      <div class="gcell">${publisher}</div>
+      <div class="gcell isbn">${escapeHtml(b.isbn13)}</div>
+      <div class="gcell">${updated}</div>
+      <div class="gcell row-actions">
+        <a href="#" class="row-view-link row-open-link" data-isbn="${escapeHtml(b.isbn13)}" data-title="${escapeHtml(b.title || '')}" data-view="card">عرض التفاصيل</a>
+        <button type="button" class="row-icon-btn row-edit-btn" data-isbn="${escapeHtml(b.isbn13)}" aria-label="تعديل" title="تعديل">${EDIT_ICON}</button>
+        <button type="button" class="row-icon-btn row-delete-btn" data-isbn="${escapeHtml(b.isbn13)}" data-title="${escapeHtml(b.title || '')}" aria-label="حذف من الفهرس" title="حذف من الفهرس">${TRASH_ICON}</button>
+      </div>
+    </div>`;
+}
+
+function renderCatalogPage() {
+  const body = document.getElementById('catalogBody');
+  if (!catalogBooks.length) {
+    body.innerHTML = catalogQuery
+      ? `<div class="empty-state"><div class="title">لا توجد نتائج مطابقة لـ"${escapeHtml(catalogQuery)}"</div><div class="hint">جرّب كلمة بحث أخرى أو امسح الحقل لعرض كل الفهرس.</div></div>`
+      : '<div class="empty-state"><div class="title">لا توجد كتب محفوظة بعد</div><div class="hint">ابحث عن ISBN من تبويب "بحث جديد" ثم اضغط "حفظ في الفهرس".</div></div>';
+    return;
+  }
+
+  const sorted = sortedCatalogBooks();
+  const totalPages = Math.max(1, Math.ceil(sorted.length / CATALOG_PAGE_SIZE));
+  if (catalogPage > totalPages) catalogPage = totalPages;
+  const start = (catalogPage - 1) * CATALOG_PAGE_SIZE;
+  const pageItems = sorted.slice(start, start + CATALOG_PAGE_SIZE);
+  const rows = pageItems.map((b, i) => bookRowHtml(b, start + i + 1)).join('');
+
+  const pagination = totalPages > 1 ? `
+    <div class="catalog-pagination">
+      <button type="button" class="btn-outline" id="catalogPrevBtn" ${catalogPage <= 1 ? 'disabled' : ''}>السابق</button>
+      <span>صفحة ${catalogPage} من ${totalPages}</span>
+      <button type="button" class="btn-outline" id="catalogNextBtn" ${catalogPage >= totalPages ? 'disabled' : ''}>التالي</button>
+    </div>` : '';
+
+  body.innerHTML = `
+    <div class="catalog-meta">${sorted.length} ${sorted.length === 1 ? 'كتاب محفوظ' : 'كتب محفوظة'}</div>
+    <div class="catalog-grid">${catalogHeaderHtml()}${rows}</div>
+    ${pagination}`;
+
+  body.querySelectorAll('.sort-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (catalogSort.col === btn.dataset.col) {
+        catalogSort.dir = catalogSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        catalogSort = { col: btn.dataset.col, dir: 'asc' };
+      }
+      catalogPage = 1;
+      renderCatalogPage();
+    });
+  });
+  const prevBtn = document.getElementById('catalogPrevBtn');
+  const nextBtn = document.getElementById('catalogNextBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => { catalogPage -= 1; renderCatalogPage(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { catalogPage += 1; renderCatalogPage(); });
+
+  body.querySelectorAll('.row-view-link').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal(link.dataset.isbn, link.dataset.title, link.dataset.view);
+    });
+  });
+  body.querySelectorAll('.row-edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => editBook(btn.dataset.isbn));
+  });
+  body.querySelectorAll('.row-delete-btn').forEach((btn) => {
+    btn.addEventListener('click', () => deleteBook(btn.dataset.isbn, btn.dataset.title));
+  });
+}
+
+function renderCatalogTable(books, query) {
+  catalogBooks = books;
+  catalogQuery = query || '';
+  catalogPage = 1;
+  renderCatalogPage();
+}
+
+// ---------- Main flow ----------
+const form = document.getElementById('searchForm');
+const errorBox = document.getElementById('errorBox');
+const loading = document.getElementById('loading');
+const tabs = document.getElementById('tabs');
+const searchBtn = document.getElementById('searchBtn');
+const saveBtn = document.getElementById('saveBtn');
+const savedBadge = document.getElementById('savedBadge');
+
+let lastLookupIsbn = null;   // isbn13 of the most recent successful lookup, for the Save button
+let lastLookupHadData = false;
+let lastLookupSources = null; // sources selected at lookup time, reused by the Save button
+
+// ---------- Source checkboxes ----------
+function getSelectedSources() {
+  return Array.from(document.querySelectorAll('#sourcesChecklist input[type="checkbox"]:checked')).map((cb) => cb.value);
+}
+
+async function loadSources() {
+  const box = document.getElementById('sourcesChecklist');
+  try {
+    const resp = await fetch('/api/sources');
+    const sources = await resp.json();
+    box.innerHTML = sources.map((s) => {
+      const disabled = !s.configured;
+      return `
+        <label class="${disabled ? 'disabled' : s.configured ? 'checked' : ''}" title="${disabled ? 'يحتاج إعداد (بيانات اعتماد/رابط) غير متوفر حاليًا' : ''}">
+          <input type="checkbox" value="${escapeHtml(s.name)}" ${s.configured ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+          ${escapeHtml(s.name)}
+        </label>`;
+    }).join('');
+    box.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+      cb.addEventListener('change', () => cb.closest('label').classList.toggle('checked', cb.checked));
+    });
+  } catch (err) {
+    box.innerHTML = `<p class="empty">تعذّر تحميل قائمة المصادر: ${escapeHtml(err.message)}</p>`;
+  }
+}
+loadSources();
+
+// ---------- Theme toggle ----------
+const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+const MOON_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+const THEME_KEY = 'isbn-cataloger-theme';
+const themeToggle = document.getElementById('themeToggle');
+
+function systemPrefersDark() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.innerHTML = theme === 'dark' ? MOON_ICON : SUN_ICON;
+}
+themeToggle.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+});
+applyTheme(localStorage.getItem(THEME_KEY) || (systemPrefersDark() ? 'dark' : 'light'));
+
+document.querySelectorAll('#tabs button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tabs button').forEach((b) => b.classList.remove('active'));
+    document.querySelectorAll('#lookupView .panel').forEach((p) => p.classList.remove('show'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.panel).classList.add('show');
+  });
+});
+
+function updateExportLinks(q) {
+  const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+  document.getElementById('exportCsvLink').href = `/api/export${qs}${qs ? '&' : '?'}format=csv`;
+  document.getElementById('exportJsonLink').href = `/api/export${qs}${qs ? '&' : '?'}format=json`;
+}
+
+let catalogLoaded = false;
+async function loadCatalog(q) {
+  const body = document.getElementById('catalogBody');
+  body.innerHTML = '<p class="empty">جارٍ التحميل...</p>';
+  updateExportLinks(q);
+  try {
+    const url = q ? `/api/books?q=${encodeURIComponent(q)}` : '/api/books';
+    const resp = await fetch(url);
+    renderCatalogTable(await resp.json(), q);
+  } catch (err) {
+    body.innerHTML = `<p class="empty">تعذّر تحميل الفهرس: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+document.querySelectorAll('#mainTabs button').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mainTabs button').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.maintab;
+    document.getElementById('lookupView').classList.toggle('view-hidden', target !== 'lookupView');
+    document.getElementById('catalogView').classList.toggle('view-hidden', target !== 'catalogView');
+    if (target === 'catalogView' && !catalogLoaded) {
+      catalogLoaded = true;
+      loadCatalog(document.getElementById('catalogSearch').value.trim());
+    }
+  });
+});
+
+let searchDebounce;
+const catalogSearchInput = document.getElementById('catalogSearch');
+catalogSearchInput.addEventListener('input', (e) => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => loadCatalog(e.target.value.trim()), 300);
+});
+catalogSearchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    clearTimeout(searchDebounce);
+    loadCatalog(e.target.value.trim());
+  }
+});
+
+const manualEntryCard = document.getElementById('manualEntryCard');
+const manualForm = document.getElementById('manualForm');
+
+function resetManualForm() {
+  manualEntryCard.classList.add('view-hidden');
+  manualForm.reset();
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorBox.style.display = 'none';
+  savedBadge.style.display = 'none';
+  tabs.style.display = 'none';
+  saveBtn.disabled = true;
+  lastLookupIsbn = null;
+  lastLookupHadData = false;
+  resetManualForm();
+  document.querySelectorAll('#lookupView .panel').forEach((p) => p.classList.remove('show'));
+  document.getElementById('cardPanel').classList.add('show');
+
+  const raw = document.getElementById('isbnInput').value.trim();
+  loading.style.display = 'flex';
+  searchBtn.disabled = true;
+
+  const selectedSources = getSelectedSources();
+  if (!selectedSources.length) {
+    errorBox.textContent = 'اختر مصدرًا واحدًا على الأقل.';
+    errorBox.style.display = 'block';
+    loading.style.display = 'none';
+    searchBtn.disabled = false;
+    return;
+  }
+
+  let data;
+  try {
+    const resp = await fetch('/api/lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isbn: raw, sources: selectedSources }),
+    });
+    data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+  } catch (err) {
+    errorBox.textContent = err.message;
+    errorBox.style.display = 'block';
+    loading.style.display = 'none';
+    searchBtn.disabled = false;
+    return;
+  }
+
+  lastLookupSources = selectedSources;
+  renderCard(data.merged, data.sources_used.map((r) => r.source), data.sources_skipped, data.sources_used);
+  document.getElementById('marcBody').textContent = data.marc_text || 'لا توجد بيانات كافية لإنشاء سجل MARC.';
+  document.getElementById('jsonBody').textContent = JSON.stringify(data, null, 2);
+
+  lastLookupIsbn = data.isbn13;
+  lastLookupHadData = data.sources_used.length > 0;
+  saveBtn.disabled = !lastLookupHadData;
+  if (!lastLookupHadData) {
+    savedBadge.className = 'saved-badge warn';
+    savedBadge.textContent = 'لم يساهم أي مصدر ببيانات لهذا الرقم — لا يمكن الحفظ تلقائيًا.';
+    savedBadge.style.display = 'block';
+    manualEntryCard.classList.remove('view-hidden');
+  }
+
+  loading.style.display = 'none';
+  searchBtn.disabled = false;
+  tabs.style.display = 'flex';
+});
+
+manualForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!lastLookupIsbn) return;
+  errorBox.style.display = 'none';
+  const manualSaveBtn = document.getElementById('manualSaveBtn');
+  manualSaveBtn.disabled = true;
+
+  const splitList = (value) => value.split('،').join(',').split(',').map((s) => s.trim()).filter(Boolean);
+  const payload = {
+    isbn: lastLookupIsbn,
+    title: document.getElementById('manualTitle').value.trim(),
+    subtitle: document.getElementById('manualSubtitle').value.trim(),
+    authors: splitList(document.getElementById('manualAuthors').value),
+    publisher: document.getElementById('manualPublisher').value.trim(),
+    publish_place: document.getElementById('manualPublishPlace').value.trim(),
+    publish_date: document.getElementById('manualPublishDate').value.trim(),
+    edition: document.getElementById('manualEdition').value.trim(),
+    pages: document.getElementById('manualPages').value.trim(),
+    language: document.getElementById('manualLanguage').value.trim(),
+    subjects: splitList(document.getElementById('manualSubjects').value),
+    dewey: document.getElementById('manualDewey').value.trim(),
+    lcc: document.getElementById('manualLcc').value.trim(),
+    note: document.getElementById('manualNote').value.trim(),
+  };
+
+  let data;
+  try {
+    const resp = await fetch('/api/books/manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+  } catch (err) {
+    errorBox.textContent = err.message;
+    errorBox.style.display = 'block';
+    manualSaveBtn.disabled = false;
+    return;
+  }
+
+  renderCard(data.merged, data.sources_used.map((r) => r.source), data.sources_skipped, data.sources_used);
+  document.getElementById('marcBody').textContent = data.marc_text || 'لا توجد بيانات كافية لإنشاء سجل MARC.';
+  document.getElementById('jsonBody').textContent = JSON.stringify(data, null, 2);
+
+  showToast(data.is_new ? 'تم الحفظ ✓ (سجل يدوي جديد في الفهرس)' : 'تم التحديث ✓ (سجل موجود مسبقًا، بإدخال يدوي)', 'ok');
+  tabs.style.display = 'flex';
+  resetManualForm();
+  catalogLoaded = false;
+  manualSaveBtn.disabled = false;
+});
+
+saveBtn.addEventListener('click', async () => {
+  if (!lastLookupIsbn) return;
+  saveBtn.disabled = true;
+  savedBadge.style.display = 'none';
+
+  let data;
+  try {
+    const resp = await fetch('/api/books', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isbn: lastLookupIsbn, sources: lastLookupSources }),
+    });
+    data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+  } catch (err) {
+    errorBox.textContent = err.message;
+    errorBox.style.display = 'block';
+    saveBtn.disabled = false;
+    return;
+  }
+
+  // the save re-runs the full lookup server-side, so refresh the displayed details
+  // with whatever ended up actually persisted (full detail, not just what was shown).
+  renderCard(data.merged, data.sources_used.map((r) => r.source), data.sources_skipped, data.sources_used);
+  document.getElementById('marcBody').textContent = data.marc_text || 'لا توجد بيانات كافية لإنشاء سجل MARC.';
+  document.getElementById('jsonBody').textContent = JSON.stringify(data, null, 2);
+
+  showToast(data.is_new ? 'تم الحفظ ✓ (سجل جديد في الفهرس، بكل التفاصيل)' : 'تم التحديث ✓ (سجل موجود مسبقًا، بكل التفاصيل)', 'ok');
+  catalogLoaded = false; // refresh catalog list next time it's opened
+  saveBtn.disabled = false;
+});
+</script>
+</body>
+</html>

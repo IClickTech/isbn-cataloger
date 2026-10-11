@@ -1,0 +1,22 @@
+[Unit]
+Description=ISBN Cataloger (Gunicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=isbnapp
+Group=isbnapp
+WorkingDirectory=/opt/isbn-cataloger
+Environment=ISBN_CATALOGER_DB=/opt/isbn-cataloger/data/catalog.db
+Environment=PATH=/opt/isbn-cataloger/venv/bin
+ExecStart=/opt/isbn-cataloger/venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile - \
+    --error-logfile - \
+    "isbn_cataloger.webapp:create_app()"
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
